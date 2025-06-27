@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TimeTrack Perso</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main>
+    <h1>TimeTrack Perso</h1>
+
+    <form id="timetrack-form">
+      <fieldset>
+        <legend>Identification</legend>
+        <label>Identifiant :
+          <input type="text" name="identifiant" required />
+        </label>
+        <label>Code secret :
+          <input type="password" name="code_secret" required />
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Pointage</legend>
+        <label>Date :
+          <input type="date" name="date" required />
+        </label>
+        <label>Heure de début :
+          <input type="time" name="heure_debut" />
+        </label>
+        <label>Heure de fin :
+          <input type="time" name="heure_fin" />
+        </label>
+        <label>Pause (en minutes) :
+          <input type="number" name="pause" value="60" min="0" />
+        </label>
+        <label>Commentaire :
+          <textarea name="commentaire" rows="2"></textarea>
+        </label>
+      </fieldset>
+
+      <div class="actions">
+        <button type="button" onclick="autoFillHeure('debut')">Pointage maintenant (début)</button>
+        <button type="button" onclick="autoFillHeure('fin')">Pointage maintenant (fin)</button>
+        <button type="submit">Enregistrer</button>
+      </div>
+
+      <div id="message"></div>
+    </form>
+  </main>
+
+  <script>
+    // Auto-remplit l’heure actuelle
+    function autoFillHeure(cible) {
+      const now = new Date();
+      const heures = now.getHours().toString().padStart(2, '0');
+      const minutes = now.getMinutes().toString().padStart(2, '0');
+      document.querySelector(`input[name="heure_${cible}"]`).value = `${heures}:${minutes}`;
+    }
+
+    // Envoi du formulaire via fetch
+    document.getElementById('timetrack-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const form = new FormData(e.target);
+
+      try {
+        const response = await fetch('https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLhLuUVvtAwiBt12wCfNGzW0WBCWcAwzPk_WFkSPiH2quoxsmBmztkGI4oiyTOz6PQj3ZBDD_BbG-xRGT7wBLlIqA4aB2dxDsay2O8hVNQQoOdQ4ugLawYrlcyf2sVAebgLDOFUQdv4-k8ldOo70R2a9Xu4Fb5SLSPqQ7w03T3CxjcH7pqM4eH4MOL63U2xUAunME19qTt3izqj-M1VfFdChAc_Hye58IgdCmxygb-bE092VaixSyKn4Tx8Png&lib=MFaoUJpHEQ11H6pkewhs9Jv2qRVRSiemN', {
+          method: 'POST',
+          body: new URLSearchParams([...form]),
+        });
+
+        const result = await response.json();
+        document.getElementById('message').innerText = result.message || 'Enregistrement réussi !';
+        e.target.reset();
+      } catch (err) {
+        document.getElementById('message').innerText = "Erreur lors de l'envoi.";
+        const text = await err.text?.() || err.message;
+document.getElementById('message').innerText = "Erreur : " + text;
+console.error("Détail : ", text);
+
+      }
+    });
+  </script>
+</body>
+</html>
