@@ -4,24 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>TimeTrack Perso</title>
-  <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <main>
     <h1>TimeTrack Perso</h1>
+    <p id="bienvenue"></p>
+    <button onclick="logout()">Déconnexion</button>
 
     <form id="timetrack-form">
-      <fieldset>
-        <legend>Identification</legend>
-        <label>Identifiant :
-          <input type="text" name="identifiant" required />
-        </label>
-        <label>Code secret :
-          <input type="password" name="code_secret" required />
-        </label>
-      </fieldset>
-
       <fieldset>
         <legend>Pointage</legend>
         <label>Date :
@@ -52,34 +43,44 @@
   </main>
 
   <script>
-  // Auto-remplit l’heure actuelle
-  function autoFillHeure(cible) {
-    const now = new Date();
-    const heures = now.getHours().toString().padStart(2, '0');
-    const minutes = now.getMinutes().toString().padStart(2, '0');
-    document.querySelector(`input[name="heure_${cible}"]`).value = `${heures}:${minutes}`;
-  }
+    // Vérifie si l'utilisateur est connecté
+    const identifiant = localStorage.getItem('identifiant');
+    const nom = localStorage.getItem('nom');
 
-  // Envoi du formulaire via POST (évite l’erreur CORS)
-  document.getElementById('timetrack-form').addEventListener('submit', async function (e) {
-    e.preventDefault();
-    const form = new FormData(e.target);
-    const params = new URLSearchParams([...form]);
-
-    try {
-      const response = await fetch("https://script.google.com/macros/s/AKfycbxB1AT6y_ha-k1TM-8ThxAKhKkz3Wup0TgGNRiH_JBWZJekCwVD65f6MezNJyhNz0RX/exec", {
-        method: "POST",
-        body: params
-      });
-
-      const data = await response.json();
-      document.getElementById('message').innerText = data.message || 'Enregistrement réussi !';
-      e.target.reset();
-    } catch (err) {
-      document.getElementById('message').innerText = "Erreur : " + err.message;
-      console.error("Erreur POST :", err);
+    if (!identifiant || !nom) {
+      window.location.href = "login.html";
+    } else {
+      document.getElementById('bienvenue').innerText = "Bienvenue, " + nom;
     }
-  });
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = "login.html";
+    }
+
+    function autoFillHeure(cible) {
+      const now = new Date();
+      const heures = now.getHours().toString().padStart(2, '0');
+      const minutes = now.getMinutes().toString().padStart(2, '0');
+      document.querySelector(`input[name="heure_${cible}"]`).value = `${heures}:${minutes}`;
+    }
+
+    // Envoi des données vers Google Apps Script
+    document.getElementById('timetrack-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const form = new FormData(e.target);
+      form.append("identifiant", identifiant);  // ajout automatique de l'identifiant
+      const params = new URLSearchParams([...form]).toString();
+
+      try {
+        const response = await fetch("https://script.google.com/macros/s/AKfycbxB1AT6y_ha-k1TM-8ThxAKhKkz3Wup0TgGNRiH_JBWZJekCwVD65f6MezNJyhNz0RX/exec?" + params);
+        const data = await response.json();
+        document.getElementById('message').innerText = data.message || "Enregistrement réussi.";
+        e.target.reset();
+      } catch (err) {
+        document.getElementById('message').innerText = "Erreur : " + err.message;
+      }
+    });
   </script>
 </body>
 </html>

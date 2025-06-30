@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Connexion – TimeTrack Perso</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <h1>Connexion</h1>
+    <form id="login-form">
+      <label>Identifiant :
+        <input type="text" name="identifiant" required />
+      </label>
+      <label>Code secret :
+        <input type="password" name="code_secret" required />
+      </label>
+      <button type="submit">Se connecter</button>
+    </form>
+    <div id="message" style="color: red; font-weight: bold;"></div>
+  </main>
+
+  <script>
+    document.getElementById('login-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const form = e.target;
+      const formData = new FormData(form);
+      const identifiant = formData.get('identifiant');
+      const codeSecret = formData.get('code_secret');
+
+      const url = `https://script.google.com/macros/s/AKfycbxB1AT6y_ha-k1TM-8ThxAKhKkz3Wup0TgGNRiH_JBWZJekCwVD65f6MezNJyhNz0RX/exec?login=true&identifiant=${encodeURIComponent(identifiant)}&code_secret=${encodeURIComponent(codeSecret)}`;
+
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+        const messageDiv = document.getElementById('message');
+
+        if (data.status === 'ok') {
+          // ✅ Stockage dans localStorage
+          localStorage.setItem('identifiant', identifiant);
+          localStorage.setItem('nom', data.nom || '');
+
+          // ✅ Message + redirection
+          messageDiv.style.color = 'green';
+          messageDiv.textContent = 'Connexion réussie. Redirection…';
+
+          // 🔁 Redirection vers index.html après 1 seconde
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 1000);
+        } else {
+          messageDiv.style.color = 'red';
+          messageDiv.textContent = data.message || 'Identifiants incorrects.';
+        }
+      } catch (err) {
+        document.getElementById('message').textContent = "Erreur de connexion : " + err.message;
+      }
+    });
+  </script>
+</body>
+</html>
