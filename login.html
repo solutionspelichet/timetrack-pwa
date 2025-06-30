@@ -1,60 +1,103 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Connexion – TimeTrack Perso</title>
+  <meta charset="UTF-8">
+  <title>Connexion</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: Trebuchet MS, sans-serif;
+      background-color: #f7f7f7;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      height: 100vh;
+      align-items: center;
+      justify-content: center;
+    }
+    .login-container {
+      background: white;
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+    .login-container h2 {
+      color: #f57921;
+      margin-bottom: 30px;
+    }
+    label {
+      display: block;
+      margin-bottom: 10px;
+      text-align: left;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #f57921;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #message {
+      margin-top: 15px;
+      color: red;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
-  <main>
-    <h1>Connexion</h1>
+  <div class="login-container">
+    <h2>Connexion</h2>
     <form id="login-form">
-      <label>Identifiant :
-        <input type="text" name="identifiant" required />
-      </label>
-      <label>Code secret :
-        <input type="password" name="code_secret" required />
-      </label>
+      <label for="identifiant">Identifiant :</label>
+      <input type="text" id="identifiant" required>
+
+      <label for="code">Code secret :</label>
+      <input type="password" id="code" required>
+
       <button type="submit">Se connecter</button>
     </form>
-    <div id="message" style="color: red; font-weight: bold;"></div>
-  </main>
+    <div id="message"></div>
+  </div>
 
   <script>
-    document.getElementById('login-form').addEventListener('submit', async function (e) {
+    document.getElementById("login-form").addEventListener("submit", async function (e) {
       e.preventDefault();
-      const form = e.target;
-      const formData = new FormData(form);
-      const identifiant = formData.get('identifiant');
-      const codeSecret = formData.get('code_secret');
 
-      const url = `https://script.google.com/macros/s/AKfycbxB1AT6y_ha-k1TM-8ThxAKhKkz3Wup0TgGNRiH_JBWZJekCwVD65f6MezNJyhNz0RX/exec?login=true&identifiant=${encodeURIComponent(identifiant)}&code_secret=${encodeURIComponent(codeSecret)}`;
+      const identifiant = document.getElementById("identifiant").value;
+      const code = document.getElementById("code").value;
 
-      try {
-        const response = await fetch(url);
-        const data = await response.json();
-        const messageDiv = document.getElementById('message');
-
-        if (data.status === 'ok') {
-          // ✅ Stockage dans localStorage
-          localStorage.setItem('identifiant', identifiant);
-          localStorage.setItem('nom', data.nom || '');
-
-          // ✅ Message + redirection
-          messageDiv.style.color = 'green';
-          messageDiv.textContent = 'Connexion réussie. Redirection…';
-
-          // 🔁 Redirection vers index.html après 1 seconde
-          setTimeout(() => {
-            window.location.href = 'index.html';
-          }, 1000);
-        } else {
-          messageDiv.style.color = 'red';
-          messageDiv.textContent = data.message || 'Identifiants incorrects.';
+      const response = await fetch(
+        "https://script.google.com/macros/s/AKfycbxB1AT6y_ha-k1TM-8ThxAKhKkz3Wup0TgGNRiH_JBWZJekCwVD65f6MezNJyhNz0RX/exec",
+        {
+          method: "POST",
+          body: JSON.stringify({ identifiant, code }),
+          headers: { "Content-Type": "application/json" }
         }
-      } catch (err) {
-        document.getElementById('message').textContent = "Erreur de connexion : " + err.message;
+      );
+
+      const data = await response.json();
+
+      if (data.status === "success") {
+        document.getElementById("message").textContent = "Connexion réussie";
+        document.getElementById("message").style.color = "green";
+        localStorage.setItem("nom", identifiant);
+        setTimeout(() => {
+          window.location.href = "index.html";
+        }, 800); // redirection après 0.8 seconde
+      } else {
+        document.getElementById("message").textContent = "Identifiants invalides";
+        document.getElementById("message").style.color = "red";
       }
     });
   </script>
